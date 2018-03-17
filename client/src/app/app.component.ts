@@ -1,6 +1,5 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import * as html2canvas from 'html2canvas';
-import * as jsPDF from 'jspdf';
 
 
 @Component({
@@ -8,23 +7,24 @@ import * as jsPDF from 'jspdf';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
+
 export class AppComponent implements OnInit{
-  img = '';
+
+  constructor( private el: ElementRef ){ }
+
+
+  @ViewChild('videoPlayer') videoPlayer: ElementRef;
   @ViewChild('canvas') canvas: ElementRef;
-
-  constructor( private el: ElementRef){
-
-  }
 
 
   ngOnInit(){
-    setTimeout( () => this.run(), 3000) ;
+    // setTimeout( () => this.takeScreen(), 5000) ;
   }
 
-  run() {
 
-    let video = document.getElementsByTagName('video')[0];
-    let canvas = <HTMLCanvasElement>document.getElementById('canvas');
+  takeScreen() {
+    let video = this.el.nativeElement.querySelector('#videoPlayer');
+    let canvas = <HTMLCanvasElement>this.el.nativeElement.querySelector('#canvas');
     let ctx = canvas.getContext('2d');
     let ratio = video.videoWidth/video.videoHeight;
     let w = video.videoWidth-100;
@@ -33,33 +33,24 @@ export class AppComponent implements OnInit{
     canvas.height = h;
     ctx.fillRect(0,0,w,h);
     ctx.drawImage(video,0,0,w,h);
-    let data = (<HTMLCanvasElement>canvas).toDataURL('image/jpg')
+    let data = (<HTMLCanvasElement>canvas).toDataURL('image/jpeg')
+    this.parseImage( data );
+}
+
+
+  parseImage( image: string ) {
     fetch( '/read', {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        image: data
+        image
     })
     } ).then( res => res.json())
-       .then( res => console.log( res ) )
+       .then( res => console.log( res.outputs[0].data.concepts ) )
        .catch( err => console.log( err ) )
-    
-    // video.style.backgroundImage = "url("+canvas.toDataURL()+")";
-    // html2canvas(video).then(function(canvas) {
-    // document.body.appendChild(canvas);})
-    
-    // html2canvas(video, { allowTaint: true } )
-    //     .then( canvas => {
-    //       console.log( canvas )
-    //       let data = (<HTMLCanvasElement>canvas).toDataURL('image/jpg')
-    //       // this.img = data;
-    //       var doc = new jsPDF();
-    //       doc.addImage(data,'JPEG',0,0);
-    //       doc.save('test.pdf');
-    //     } ) 
-}
+  }
 
 
 

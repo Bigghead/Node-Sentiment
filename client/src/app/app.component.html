@@ -1,8 +1,10 @@
 <div class="video">
-  <video controls style="height: 300px; width: 500px;"(click)="toggleVideo()" id="videoPlayer">
+  <video controls style="height: 300px; width: 500px;" #videoPlayer id="videoPlayer">
       <source src="../assets/fair.mp4" type="video/mp4" />
       Browser not supported
   </video>
   </div>
 
-  <canvas id="canvas"></canvas>
+  <button (click)="takeScreen()">Capture</button>
+
+  <canvas #canvas id="canvas" class="hide"></canvas>
