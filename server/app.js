@@ -1,14 +1,21 @@
 require('dotenv').config()
 
-const express    = require( 'express' );
-const bodyParser = require( 'body-parser' );
-const fs         = require( 'fs' );
-const Clarifai   = require( 'clarifai' );
-const path       = require( 'path' );
-const app        = express();
+const express      = require( 'express' );
+const bodyParser   = require( 'body-parser' );
+const fs           = require( 'fs' );
+const path         = require( 'path' );
+const app          = express();
 const { readFile } = require( './helpers/fsHelper' );
 
-const clarifai = new Clarifai.App( { apiKey: process.env.CLARIFAI_KEY } );
+// ===== CLARIFAI ===== //
+const clarifai   = require( 'clarifai' );
+const Clarifai   = new clarifai.App( { apiKey: process.env.CLARIFAI_KEY } );
+
+// ==== GOOGLE VISION ===== //
+const vision   = require('@google-cloud/vision'); 
+const client   = new vision.ImageAnnotatorClient();
+
+
 
 app.use(bodyParser.json( { limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -22,14 +29,13 @@ app.post( '/read', ( req, res ) => {
 
     fs.writeFileSync(`./assets/${imageName}.jpeg`, 
                       req.body.image,
-                      'base64', 
-                      ( err ) => console.log( err ) );
+                      'base64' );
                       
     readFile( `./assets/${imageName}.jpeg` )
         .then( data => {
             let baseImage = data.toString('base64')
             fs.unlink( `./assets/${imageName}.jpeg`, ( err ) => console.log( err ) );
-            clarifai.models.predict( Clarifai.GENERAL_MODEL, baseImage )
+            Clarifai.models.predict( Clarifai.GENERAL_MODEL, baseImage )
                     .then( 
                         result => {
                             res.json( result );
@@ -40,6 +46,18 @@ app.post( '/read', ( req, res ) => {
                     )
         } ) 
         .catch( error => res.status(400).json( { error } ) )
+} )
+
+
+app.get( '/read', ( req, res ) => {
+    client.labelDetection('./Rottweiler-1.jpg')
+          .then(results => {
+              const labels = results[0].labelAnnotations;
+              res.json( results )
+          } )
+          .catch(err => {
+              res.json( err )
+          } );
 } )
 
 
