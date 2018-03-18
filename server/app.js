@@ -34,16 +34,25 @@ app.post( '/read', ( req, res ) => {
     readFile( `./assets/${imageName}.jpeg` )
         .then( data => {
             let baseImage = data.toString('base64')
-            fs.unlink( `./assets/${imageName}.jpeg`, ( err ) => console.log( err ) );
-            Clarifai.models.predict( Clarifai.GENERAL_MODEL, baseImage )
-                    .then( 
-                        result => {
-                            res.json( result );
-                        },
-                        err => {
-                            throw new Error( err )
-                        }
-                    )
+            // Clarifai.models.predict( Clarifai.GENERAL_MODEL, baseImage )
+            //         .then( 
+            //             result => {
+            //                 res.json( result );
+            //             },
+            //             err => {
+            //                 throw new Error( err )
+            //             }
+            //         )
+            client.faceDetection(`./assets/${imageName}.jpeg`)
+                  .then( results => {
+                      fs.unlink( `./assets/${imageName}.jpeg`, ( err ) => console.log( err ) );
+
+                      const labels = results[0].labelAnnotations;
+                      res.json( results )
+                  } )
+                  .catch(err => {
+                      res.json( err )
+                  } );
         } ) 
         .catch( error => res.status(400).json( { error } ) )
 } )

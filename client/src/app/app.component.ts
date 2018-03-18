@@ -23,7 +23,6 @@ export class AppComponent implements OnInit, AfterViewInit{
   canvasHeight: number;
 
   ngOnInit(){
-    // setTimeout( () => this.takeScreen(), 5000) ;
   }
 
 
@@ -31,20 +30,18 @@ export class AppComponent implements OnInit, AfterViewInit{
     this.video    = this.el.nativeElement.querySelector('#videoPlayer');
     this.canvasEl = <HTMLCanvasElement>this.el.nativeElement.querySelector('#canvas');
 
-    let ratio = 1.777;
-    this.canvasWidth = 1180;
-    this.canvasHeight = (this.canvasWidth/ratio);
+    let ratio = 1.6;
+    this.canvasEl.width = 1180;
+    this.canvasEl.height = (this.canvasEl.width/ratio);
   }
 
 
   takeScreen() {
 
     let ctx   = this.canvasEl.getContext( '2d' );
-    this.canvasEl.width = this.canvasWidth;
-    this.canvasEl.height = this.canvasHeight;
-    ctx.fillRect( 0, 0, this.canvasWidth, this.canvasHeight );
-    ctx.drawImage( this.video, 0, 0, this.canvasWidth, this.canvasHeight );
-    let data = (<HTMLCanvasElement>this.canvasEl).toDataURL('image/jpeg')
+    ctx.fillRect( 0, 0, this.canvasEl.width, this.canvasEl.height );
+    ctx.drawImage( this.video, 0, 0, this.canvasEl.width, this.canvasEl.height );
+    let data = this.canvasEl.toDataURL('image/jpeg')
     this.parseImage( data );
 }
 
@@ -59,7 +56,9 @@ export class AppComponent implements OnInit, AfterViewInit{
         image
     })
     } ).then( res => res.json() )
-       .then( res => console.log( res.outputs[0].data.concepts ) )
+       .then( res => console.log( res ) )
+      // ===== clairfai ===== //
+      //  .then( res => console.log( res.outputs[0].data.concepts ) )
        .catch( err => console.log( err ) )
   }
 
