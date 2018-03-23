@@ -36,7 +36,7 @@ router.get( '/', ( req, res ) => {
 } )
 
 
-router.post( '/', ( req, res ) => {
+router.post( '/', async ( req, res ) => {
     let imageName = Date.now();
     req.body.image = req.body.image.replace(/^data:image\/jpeg+;base64,/, "");
     req.body.image = req.body.image.replace(/ /g, '+');
@@ -44,23 +44,22 @@ router.post( '/', ( req, res ) => {
     fs.writeFileSync(`./assets/${imageName}.jpeg`, 
                       req.body.image,
                       'base64' );
-                      
-    readFile( `./assets/${imageName}.jpeg` )
-        .then( data => {
-            let baseImage = data.toString('base64')
-          
-            client.faceDetection(`./assets/${imageName}.jpeg`)
-                  .then( results => {
-                      fs.unlink( `./assets/${imageName}.jpeg`, ( err ) => console.log( err ) );
 
-                      const labels = results[0].labelAnnotations;
-                      res.json( results )
-                  } )
-                  .catch(err => {
-                      res.json( err )
-                  } );
-        } ) 
-        .catch( error => res.status(400).json( { error } ) )
+    try {
+
+        const picture = await readFile( `./assets/${imageName}.jpeg` );
+        let baseImage = picture.toString('base64');
+
+        const recog   = await client.faceDetection(`./assets/${imageName}.jpeg`);
+        await fs.unlink( `./assets/${imageName}.jpeg`, ( err ) => console.log( err ) );
+        const labels = recog[0].labelAnnotations;
+        res.json( recog );
+
+    } catch( err ) {
+        console.log( err )
+        res.status(400).json(err)
+    }
+
 } )
 
 
